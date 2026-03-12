@@ -50,12 +50,14 @@ def create_book():
 # Route: GET /books/<int:book_id>
 # - Return the book as JSON with status 200
 # - Return {"error": "Book not found"} with status 404 if not found
-
-
 # TODO: Implement this endpoint
 
-
-
+@app.route("/books/<int:book_id>", methods=["GET"])
+def get_single_book_byID(book_id):
+    book = get_book(book_id)
+    if book:
+        return jsonify({"book": book}), 200
+    return jsonify({"error": "Book not found"}), 404
 
 # ----- ENDPOINT 4: Update a book (TODO) -----
 # Route: PUT /books/<int:book_id>
@@ -63,23 +65,41 @@ def create_book():
 # - Return the updated book as JSON with status 200
 # - Return 404 if book not found
 # - Return 400 if validation fails (e.g. price <= 0)
-
-
 # TODO: Implement this endpoint
+@app.route("/books/<int:book_id>", methods=["PUT"])
+def update_single_book_byID(book_id):
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
 
-
-
-
+    try:
+        updated_book = update_book(
+            book_id,
+            title=data.get("title"),
+            author=data.get("author"),
+            price=data.get("price")
+        )
+        return jsonify({"book": updated_book}), 200
+    except ValueError as error:
+        # Check error message to decide 404 vs 400
+        message = str(error)
+        if "not found" in message:
+            return jsonify({"error": "Book not found"}), 404
+        return jsonify({"error": message}), 400
+    
 # ----- ENDPOINT 5: Delete a book (TODO) -----
 # Route: DELETE /books/<int:book_id>
 # - Return {"message": "Book deleted"} with status 200
 # - Return {"error": "..."} with status 404 if not found
-
-
 # TODO: Implement this endpoint
 
-
-
+@app.route("/books/<int:book_id>", methods=["DELETE"])
+def delete_single_book_byID(book_id):
+    try:
+        delete_book(book_id)
+        return jsonify({"message": "Book deleted"}), 200
+    except ValueError:
+        return jsonify({"error": "Book not found"}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)
